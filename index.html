@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-Pesa STK Payment</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f') no-repeat center center/cover;
+}
+
+.overlay{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+}
+
+.container{
+  position:relative;
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(15px);
+  padding:40px;
+  width:350px;
+  border-radius:20px;
+  text-align:center;
+  color:#fff;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+
+.container h3{
+  margin-bottom:20px;
+  font-size:22px;
+  letter-spacing:1px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:none;
+  border-radius:10px;
+  outline:none;
+  font-size:14px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:10px;
+  background:#00c853;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#009624;
+}
+
+button:disabled{
+  background:gray;
+  cursor:not-allowed;
+}
+
+#status{
+  margin-top:20px;
+  font-size:14px;
+  min-height:24px;
+}
+
+.spinner{
+  border:4px solid rgba(255,255,255,0.3);
+  border-top:4px solid #fff;
+  border-radius:50%;
+  width:18px;
+  height:18px;
+  animation:spin 1s linear infinite;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:8px;
+}
+
+@keyframes spin{
+  100%{ transform:rotate(360deg); }
+}
+
+.guide{
+  margin-top:15px;
+  font-size:12px;
+  opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+<h3>M-Pesa STK Payment</h3>
+
+<input id="name" placeholder="Full Name">
+<input id="phone" placeholder="2547XXXXXXXX">
+<input id="amount" placeholder="Amount">
+
+<button id="payBtn" onclick="pay()">Pay Now</button>
+
+<p id="status"></p>
+
+<p class="guide">
+After clicking <b>Pay Now</b>, check your phone.<br>
+Enter your M-Pesa PIN to complete the transaction.<br>
+Do not close this page while payment is processing.
+</p>
+
+</div>
+
+<script>
+let ref = null;
+let status = document.getElementById("status");
+let payBtn = document.getElementById("payBtn");
+
+async function pay() {
+
+  payBtn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> Payment in progress... Sending STK push';
+
+  const res = await fetch("https://script.google.com/macros/s/AKfycbw76qk3r4KMnp10S_edmvjIp3U0P8cOlk6oCH0Up2ANYPdpm_9dZ9DjIaMV8VE9kZp6UQ/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      type: "stkPush",
+      name: name.value,
+      phone: phone.value,
+      amount: amount.value
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    status.innerText = "❌ Error: " + data.error;
+    payBtn.disabled = false;
+    return;
+  }
+
+  ref = data.reference;
+
+  status.innerHTML = '<span class="spinner"></span> Check your phone and enter PIN...';
+
+  pollStatus();
+}
+
+function pollStatus() {
+  const interval = setInterval(async () => {
+
+    const res = await fetch(
+      "https://script.google.com/macros/s/AKfycbw76qk3r4KMnp10S_edmvjIp3U0P8cOlk6oCH0Up2ANYPdpm_9dZ9DjIaMV8VE9kZp6UQ/exec?reference=" + ref
+    );
+
+    const data = await res.json();
+
+    if (data.status === "COMPLETE") {
+      status.innerText = "✅ Payment Successful";
+      payBtn.disabled = false;
+      clearInterval(interval);
+    }
+
+    if (data.status === "FAILED") {
+      status.innerText = "❌ Payment Failed";
+      payBtn.disabled = false;
+      clearInterval(interval);
+    }
+
+  }, 3000);
+}
+</script>
+
+</body>
+</html>
