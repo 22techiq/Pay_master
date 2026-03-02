@@ -19,7 +19,7 @@ async function pay() {
 
   status.innerText = "Sending STK push...";
 
-  const res = await fetch("YOUR_WEB_APP_URL", {
+  const res = await fetch("https://script.google.com/macros/s/AKfycbw76qk3r4KMnp10S_edmvjIp3U0P8cOlk6oCH0Up2ANYPdpm_9dZ9DjIaMV8VE9kZp6UQ/exec", {
     method: "POST",
     body: JSON.stringify({
       type: "stkPush",
@@ -47,7 +47,7 @@ function pollStatus() {
   const interval = setInterval(async () => {
 
     const res = await fetch(
-      "YOUR_WEB_APP_URL?reference=" + ref
+      "https://script.google.com/macros/s/AKfycbw76qk3r4KMnp10S_edmvjIp3U0P8cOlk6oCH0Up2ANYPdpm_9dZ9DjIaMV8VE9kZp6UQ/exec?reference=" + ref
     );
 
     const data = await res.json();
