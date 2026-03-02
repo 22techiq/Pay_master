@@ -1,39 +1,29 @@
 <!--FRONTEND CODE-->
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Secure Payment</title>
-<style>
-body{font-family:Arial;background:#f4f6f9;display:flex;justify-content:center;align-items:center;height:100vh;}
-.box{background:white;padding:30px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.1);width:300px;}
-input,button{width:100%;padding:10px;margin:10px 0;}
-button{background:#0a66c2;color:white;border:none;cursor:pointer;}
-button:hover{background:#004182;}
-</style>
-</head>
 <body>
 
-<div class="box">
-<h2>Pay Now</h2>
-<input id="name" placeholder="Name">
-<input id="email" placeholder="Email">
-<input id="phone" placeholder="Phone">
-<input id="amount" placeholder="Amount">
-<button onclick="pay()">Pay</button>
-<p id="msg"></p>
-</div>
+<h3>M-Pesa STK Payment</h3>
+
+<input id="name" placeholder="Name"><br>
+<input id="phone" placeholder="2547XXXXXXXX"><br>
+<input id="amount" placeholder="Amount"><br>
+
+<button onclick="pay()">Pay Now</button>
+<p id="status"></p>
 
 <script>
-async function pay() {
-  msg.innerText = "Processing...";
+let ref = null;
 
-  const res = await fetch("https://script.google.com/macros/s/AKfycbx2LJDlHxuet2rzl-LVMulrG4T6pIgjuAvdocELziNTez4wkePD3Cgh5Qtewavb85sEug/exec", {
+async function pay() {
+
+  status.innerText = "Sending STK push...";
+
+  const res = await fetch("YOUR_WEB_APP_URL", {
     method: "POST",
     body: JSON.stringify({
-      type: "createPayment",
+      type: "stkPush",
       name: name.value,
-      email: email.value,
       phone: phone.value,
       amount: amount.value
     })
@@ -41,11 +31,38 @@ async function pay() {
 
   const data = await res.json();
 
-  if (data.checkout_url) {
-    window.location.href = data.checkout_url;
-  } else {
-    msg.innerText = "Payment failed";
+  if (data.error) {
+    status.innerText = "Error: " + data.error;
+    return;
   }
+
+  ref = data.reference;
+
+  status.innerText = "Check your phone and enter PIN...";
+
+  pollStatus();
+}
+
+function pollStatus() {
+  const interval = setInterval(async () => {
+
+    const res = await fetch(
+      "YOUR_WEB_APP_URL?reference=" + ref
+    );
+
+    const data = await res.json();
+
+    if (data.status === "COMPLETE") {
+      status.innerText = "✅ Payment Successful";
+      clearInterval(interval);
+    }
+
+    if (data.status === "FAILED") {
+      status.innerText = "❌ Payment Failed";
+      clearInterval(interval);
+    }
+
+  }, 3000);
 }
 </script>
 
