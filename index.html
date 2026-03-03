@@ -108,6 +108,38 @@ button:disabled{
   font-size:12px;
   opacity:0.8;
 }
+
+.whatsapp-float{
+  position:fixed;
+  bottom:90px; /* keeps it above footer */
+  right:20px;
+  width:60px;
+  height:60px;
+  background:#25D366;
+  color:#fff;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:28px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+  transition:0.3s;
+  z-index:1000;
+  animation: pulse 2s infinite;
+  text-decoration: none;
+}
+
+.whatsapp-float:hover{
+  transform:scale(1.1);
+  background:#1ebe5d;
+}
+
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(37,211,102,0.7); }
+  70%{ box-shadow:0 0 0 15px rgba(37,211,102,0); }
+  100%{ box-shadow:0 0 0 0 rgba(37,211,102,0); }
+}
+
 </style>
 </head>
 
@@ -276,4 +308,9 @@ document.onmousedown = function (e) {
 </script>
 
 </body>
+<a href="https://wa.me/254742955188" 
+   class="whatsapp-float" 
+   target="_blank">
+   <i class="fab fa-whatsapp"></i>
+</a>
 </html>
